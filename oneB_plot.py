@@ -15,23 +15,22 @@ weight = 0.38
 max_iter = 100
 A = A.toarray()
 
+
 def weighted_jacobi(A, b, sigma, weight, max_iter):
     n = len(b)
-    x = np.zeros(n)  # initial guess
+    x = np.zeros(n)
     diagonal_elements = np.diag(A)
     diagonal_matrix = np.zeros(A.shape)
     np.fill_diagonal(diagonal_matrix, diagonal_elements)
-
     norm_residuals = []  # To store norms of residuals at each iteration
     norm_residuals_divided = []
 
     for k in range(max_iter):
-        x_new = x + weight * np.linalg.solve(diagonal_matrix, b - np.dot(A, x))
+        x_new = x + np.dot(weight*np.linalg.inv(diagonal_matrix),(b-np.dot(A,x)))
         residual_norm = np.linalg.norm(np.dot(A, x_new) - b)
         norm_residuals.append(residual_norm)
-        residual_norm_divided = np.linalg.norm(np.dot(A, x_new) - b)/np.linalg.norm(np.dot(A, x) - b)
+        residual_norm_divided = residual_norm/np.linalg.norm(np.dot(A, x) - b)
         norm_residuals_divided.append(residual_norm_divided)
-
 
         if residual_norm / np.linalg.norm(b) < sigma or np.linalg.norm(x_new - x) / np.linalg.norm(x_new) < sigma:
             return x_new, k + 1, norm_residuals, norm_residuals_divided
@@ -42,14 +41,12 @@ def weighted_jacobi(A, b, sigma, weight, max_iter):
 
 def gauss_seidel(A, b, sigma, max_iter):
     n = len(b)
-    x = np.zeros(n)  # initial guess
+    x = np.zeros(n)
     diagonal_elements = np.diag(A)
-    k = 0
-    norm_residuals = []  # To store norms of residuals at each iteration
+    norm_residuals = [] 
     norm_residuals_divided = []
 
-
-    for _ in range(max_iter):
+    for k in range(max_iter):
         x_new = np.zeros(n)
         for i in range(n):
             row_i = A[i, :]
@@ -64,14 +61,13 @@ def gauss_seidel(A, b, sigma, max_iter):
 
         residual_norm = np.linalg.norm(np.dot(A, x_new) - b)
         norm_residuals.append(residual_norm)
-        residual_norm_divided = np.linalg.norm(np.dot(A, x_new) - b)/np.linalg.norm(np.dot(A, x) - b)
+        residual_norm_divided = residual_norm/np.linalg.norm(np.dot(A, x) - b)
         norm_residuals_divided.append(residual_norm_divided)
 
         if residual_norm / np.linalg.norm(b) < sigma or np.linalg.norm(x_new - x) / np.linalg.norm(x_new) < sigma:
             return x_new, k + 1, norm_residuals, norm_residuals_divided
         else:
             x = x_new
-            k += 1
 
     return x, max_iter, norm_residuals,norm_residuals_divided
 
@@ -79,11 +75,10 @@ def steepest_descent(A, b, sigma, max_iter):
     n = len(b)
     x = np.zeros(n)
     r = b - np.dot(A, x)
-    k = 0
-    norm_residuals = []  # To store norms of residuals at each iteration
+    norm_residuals = [] 
     norm_residuals_divided = []
 
-    for _ in range(max_iter):
+    for k in range(max_iter):
         a_rk = np.dot(A, r)
         alpha = np.dot(r, r) / np.dot(r, a_rk)
         new_x = x + alpha * r
@@ -91,14 +86,13 @@ def steepest_descent(A, b, sigma, max_iter):
 
         residual_norm = np.linalg.norm(np.dot(A, new_x) - b)
         norm_residuals.append(residual_norm)
-        residual_norm_divided = np.linalg.norm(np.dot(A, new_x) - b)/np.linalg.norm(np.dot(A, x) - b)
+        residual_norm_divided = residual_norm/np.linalg.norm(np.dot(A, x) - b)
         norm_residuals_divided.append(residual_norm_divided)
 
         if residual_norm / np.linalg.norm(b) < sigma or np.linalg.norm(new_x - x) / np.linalg.norm(new_x) < sigma:
             return new_x, k + 1, norm_residuals, norm_residuals_divided
         else:
             x = new_x
-            k += 1
 
     return x, max_iter, norm_residuals,norm_residuals_divided
 
@@ -107,11 +101,10 @@ def conjugate_gradient(A, b, sigma, max_iter):
     x = np.zeros(n)
     r = b - np.dot(A, x)
     p = r.copy()
-    k = 0
-    norm_residuals = []  # To store norms of residuals at each iteration
+    norm_residuals = []  
     norm_residuals_divided = []
 
-    for _ in range(max_iter):
+    for k in range(max_iter):
         a_pk = np.dot(A, p)
         alpha = np.dot(r, r) / np.dot(p, a_pk)
         new_x = x + alpha * p
@@ -129,7 +122,6 @@ def conjugate_gradient(A, b, sigma, max_iter):
             p = new_r + beta * p
             x = new_x
             r = new_r
-            k += 1
 
     return x, max_iter, norm_residuals, norm_residuals_divided
 
@@ -139,34 +131,34 @@ print(steepest_descent(A, b, sigma, max_iter)[1])
 print(conjugate_gradient(A, b, sigma, max_iter)[1])
 
 
-
-# Plotting jacobi
+#
+# # Plotting jacobi
 # result, iterations, norm_residuals, norm_residuals_divided = weighted_jacobi(A, b, sigma, weight, max_iter)
 # plt.figure()
 # plt.semilogy(range(1, iterations + 1), norm_residuals, marker='o', linestyle='-')
 # plt.xlabel('Iteration $k$')
 # plt.ylabel('Logarithm of Residual Norm')
-# plt.title('Convergence of Weighted Jacobi Method (Norm of Residuals)')
+# plt.title('Convergence of Weighted Jacobi Method with w=0.38')
 # plt.grid(True)
 # plt.show()
 #
 # plt.figure()
 # plt.semilogy(range(1, iterations + 1), norm_residuals_divided, marker='s', linestyle='-')
 # plt.xlabel('Iteration $k$')
-# plt.ylabel('Logarithm of Residual Norm Divided')
-# plt.title('Convergence of Weighted Jacobi Method (Norm of Residuals Divided)')
+# plt.ylabel('Logarithm of Residual Norm')
+# plt.title('Convergence of Weighted Jacobi Method with w=0.38 (Divided By Norm)')
 # plt.grid(True)
 # plt.show()
-
-
-
-# Plotting GS
+#
+#
+#
+# # Plotting GS
 # result, iterations, norm_residuals, norm_residuals_divided = gauss_seidel(A, b, sigma, max_iter)
 # plt.figure()
 # plt.semilogy(range(1, iterations + 1), norm_residuals, marker='o', linestyle='-')
 # plt.xlabel('Iteration $k$')
 # plt.ylabel('Logarithm of Residual Norm')
-# plt.title('Convergence of Gauss-Seidel Method (Norm of Residuals)')
+# plt.title('Convergence of Gauss-Seidel Method')
 # plt.grid(True)
 # plt.show()
 #
@@ -174,43 +166,43 @@ print(conjugate_gradient(A, b, sigma, max_iter)[1])
 # plt.figure()
 # plt.semilogy(range(1, iterations + 1), norm_residuals_divided, marker='s', linestyle='-')
 # plt.xlabel('Iteration $k$')
-# plt.ylabel('Logarithm of Residual Norm Divided')
-# plt.title('Convergence of Gauss-Seidel Method (Norm of Residuals Divided)')
+# plt.ylabel('Logarithm of Residual Norm')
+# plt.title('Convergence of Gauss-Seidel Method (Divided By Norm)')
 # plt.grid(True)
 # plt.show()
-
-# Plotting SD
+#
+# # Plotting SD
 # result, iterations, norm_residuals, norm_residuals_divided = steepest_descent(A, b, sigma, max_iter)
 # plt.figure()
 # plt.semilogy(range(1, iterations + 1), norm_residuals, marker='o', linestyle='-')
 # plt.xlabel('Iteration $k$')
 # plt.ylabel('Logarithm of Residual Norm')
-# plt.title('Convergence of Steepest Descent Method (Norm of Residuals)')
+# plt.title('Convergence of Steepest Descent Method')
 # plt.grid(True)
 # plt.show()
 #
 # plt.figure()
 # plt.semilogy(range(1, iterations + 1), norm_residuals_divided, marker='s', linestyle='-')
 # plt.xlabel('Iteration $k$')
-# plt.ylabel('Logarithm of Residual Norm Divided')
-# plt.title('Convergence of Steepest Descent Method (Norm of Residuals Divided)')
+# plt.ylabel('Logarithm of Residual Norm')
+# plt.title('Convergence of Steepest Descent Method (Divided By Norm)')
 # plt.grid(True)
 # plt.show()
-
-# Plotting CG
-result, iterations, norm_residuals, norm_residuals_divided = conjugate_gradient(A, b, sigma, max_iter)
-plt.figure()
-plt.semilogy(range(1, iterations + 1), norm_residuals, marker='o', linestyle='-')
-plt.xlabel('Iteration $k$')
-plt.ylabel('Logarithm of Residual Norm')
-plt.title('Convergence of Conjugate Gradient Method (Norm of Residuals)')
-plt.grid(True)
-plt.show()
-
-plt.figure()
-plt.semilogy(range(1, iterations + 1), norm_residuals_divided, marker='s', linestyle='-')
-plt.xlabel('Iteration $k$')
-plt.ylabel('Logarithm of Residual Norm Divided')
-plt.title('Convergence of Conjugate Gradient Method (Norm of Residuals Divided)')
-plt.grid(True)
-plt.show()
+#
+# # Plotting CG
+# result, iterations, norm_residuals, norm_residuals_divided = conjugate_gradient(A, b, sigma, max_iter)
+# plt.figure()
+# plt.semilogy(range(1, iterations + 1), norm_residuals, marker='o', linestyle='-')
+# plt.xlabel('Iteration $k$')
+# plt.ylabel('Logarithm of Residual Norm')
+# plt.title('Convergence of Conjugate Gradient Method')
+# plt.grid(True)
+# plt.show()
+#
+# plt.figure()
+# plt.semilogy(range(1, iterations + 1), norm_residuals_divided, marker='s', linestyle='-')
+# plt.xlabel('Iteration $k$')
+# plt.ylabel('Logarithm of Residual Norm')
+# plt.title('Convergence of Conjugate Gradient Method (Divided By Norm)')
+# plt.grid(True)
+# plt.show()
